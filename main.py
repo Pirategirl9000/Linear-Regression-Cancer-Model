@@ -41,9 +41,9 @@ linear_est = estimator.LinearClassifier(feature_columns=feature_columns)
 linear_est.train((train_input_fn))
 
 #check accuracy
-result = linear_est.evaluate(eval_input_fn)
+#result = linear_est.evaluate(eval_input_fn)
 os.system('clear')
-print(f"Accuracy: {result['accuracy']}")
+#print(f"Accuracy: {result['accuracy']}")
 
 prediction_data = list(linear_est.predict(eval_input_fn))
 prediction = prediction_data.pop(0)
