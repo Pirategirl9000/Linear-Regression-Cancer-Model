@@ -1,8 +1,8 @@
 import pandas as pd
 import tensorflow as tf
-import tensorflow._api.v2.compat.v2.feature_column
-import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+from tensorflow_estimator import estimator
+import os
 
 x_dataset = pd.read_csv("Cancer_Data.csv")
 x_dataset.pop("id") #get rid of id number
@@ -21,4 +21,33 @@ def make_input_fn(data_df, label_df, num_epochs = 10, shuffle=True, batch_size =
         return ds
     return input_function
 
-dftrain, dfeval, y_train, y_eval = train_test_split(x_dataset, y_dataset, shuffle = False, test_size = 0.3)
+dftrain, dfeval, y_train, y_eval = train_test_split(x_dataset, y_dataset, shuffle = False, test_size = 0.3) #split data up
+
+#parse data into feature columns
+features = ["radius_mean","texture_mean","perimeter_mean","area_mean","smoothness_mean","compactness_mean","concavity_mean","concave points_mean","symmetry_mean","fractal_dimension_mean","radius_se","texture_se","perimeter_se","area_se","smoothness_se","compactness_se","concavity_se","concave points_se","symmetry_se","fractal_dimension_se","radius_worst","texture_worst","perimeter_worst","area_worst","smoothness_worst","compactness_worst","concavity_worst","concave points_worst","symmetry_worst","fractal_dimension_worst"]
+feature_columns = []
+for feature_name in features:
+    feature_columns.append(tf.feature_column.numeric_column(feature_name, dtype = tf.float32))
+    
+
+#get input functions
+train_input_fn = make_input_fn(dftrain, y_train)
+eval_input_fn = make_input_fn(dfeval, y_eval, num_epochs=1, shuffle=False)
+
+#create model
+linear_est = estimator.LinearClassifier(feature_columns=feature_columns)
+
+#train
+linear_est.train((train_input_fn))
+
+#check accuracy
+result = linear_est.evaluate(eval_input_fn)
+os.system('clear')
+print(f"Accuracy: {result['accuracy']}")
+
+prediction_data = list(linear_est.predict(eval_input_fn))
+prediction = prediction_data.pop(0)
+
+print(f"Predictions: {prediction}")
+
+print(f"Actual Values: \n{y_eval}")
